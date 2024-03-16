@@ -1,6 +1,7 @@
 #!/bin/python3
-
-from interval import interval, inf
+import matplotlib.pyplot as plt
+import numpy as np
+import utils
 
 class Occupation:
   def __init__(self,enter_time,leave_time,robot_id,is_stranded):
@@ -15,6 +16,8 @@ class Occupation:
   def enter_leave_robot(cls, robot_id, enter_time, leave_time):
     return cls(enter_time, leave_time, robot_id, False)
   def has_overlap (self, enter_time, leave_time):
+    if self.is_stranded and enter_time >= self.enter_time:
+      return True
     if self.enter_time >= enter_time and enter_time <= self.leave_time:
       return True
     if self.enter_time <= leave_time and leave_time <= self.leave_time:
@@ -57,9 +60,8 @@ class Occupations:
     
 
 class Spot:
-  def __init__(self, x_pos, y_pos, phi):
-    self.x_pos = x_pos
-    self.y_pos = y_pos
+  def __init__(self,xy_position, phi):
+    self.pos = np.array([0,0])
     self.phi = phi
     self.occupations = Occupations()
 
@@ -68,28 +70,37 @@ class Route:
     self.spots = spots
 
 
-class Move:
-  def __init__(self, spot, enter_time, leave_time) -> None:
-    self.spot = spot
-    self.enter_time = enter_time
-    self.leave_time = leave_time
+def get_trajectory_time(self, spots_list):
+  spot_points= [spot.pos for spot in spots_list]
+  utils.removeIntermediatePathPoints (spot_points)
+  max_vel = 10
+  max_acc =3
+  total_time =0
+  for i in range(len(spot_points)-1):
+      distance = spot_points[i]-spot_points[i+1].norm()
+      time, velocity = utils.velocity_profile(distance, max_vel, max_acc)
+      total_time += time
+  return total_time
 
-class TrajectoryProvider:
-  def __init__(self) -> None:
-    pass
+def try_move(spots_list, start_time, robot_id):
+  total_time = get_trajectory_time(spots_list)
+  end_time = start_time + total_time
+  # check time interval with occupations
+  pass_occupation=Occupation.enter_leave_robot(robot_id, start_time, end_time)
+  enter_occupation =Occupation.enter_robot(robot_id, start_time)
 
-  def get_trajectory(self, spots_list):
-    return None
 
-  def get_trajectory_time(self, spots_list):
-    return 0
-
-def try_move(queue, spots_list, start_time):
-  # todo
-  pass 
 
 
 class Queue:
   def __init__(self, spots_map) -> None:
     self.spots = spots_map.spots
     self.enter_routes = {} # map with lists of routes for every enter spot
+
+
+
+
+#plot time velocity with matplotlib
+plt.plot(time, velocity)
+plt.show()
+
